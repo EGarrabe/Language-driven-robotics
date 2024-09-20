@@ -12,3 +12,17 @@ The execution module subscribes to the 'Task', 'Plan' and 'EO' (expected outcome
 At each step, the context is completed with a short input containing the feedback from the previous step, the current plan and a reminder of the robot's position and of the object in its gripper. The LLM then outputs code for the step.
 
 ## Experiment implementation
+### Service setting
+The service robot experiments are done in the VirtualHome simulator. In VirtualHome, the robot is represented by a humanoid agent and evolves inside an appartment. 
+
+#### Requirements
+
+
+#### Digital twin
+
+
+### Industrial setting
+We inspire our industrial setting on the euROBIN Robothon taskboard., which is a manipulation benchmark inspired by eletronic recycling tasks. For these experiments, we use as skills a set of motion primitives developed prior to this work.
+
+#### Digital twin
+Given the limited combinatorics of the task, and the difficulty of sensing the taskboard state (for example, wether a component is powered or not), we design a simple digital twin that verifies wether a skill has been run before or not when appropriate. The motion primitives are defined within the digital twin as ROS services.
