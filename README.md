@@ -22,7 +22,7 @@ The service robot experiments are done in the [VirtualHome](virtual-home.org/) s
 In the digital twin, we provide lists of the known locations and objects for each task. Automatically exploring and memorizing the environment is the topic of future work. The motion primitives are coded as VirtualHome actions, see the [Documentation](http://virtual-home.org/documentation/master/get_started/get_started.html#key-concepts) for more details.
 
 ### Industrial setting
-We inspire our industrial setting on the euROBIN Robothon taskboard., which is a manipulation benchmark inspired by eletronic recycling tasks. For these experiments, we use as skills a set of motion primitives developed prior to this work.
+We inspire our industrial setting on the euROBIN Robothon taskboard., which is a manipulation benchmark inspired by eletronic recycling tasks. For these experiments, we use as skills a set of motion primitives developed prior to this work. For the moment, the code is provided for the reader's information, due to the hardware requirements for running the experiments.
 
 #### Digital twin
 Given the limited combinatorics of the task, and the difficulty of accurately simulating the taskboard, we design a simple digital twin that verifies wether a skill has been run before or not when appropriate. The motion primitives are ROS services that are called from the digital twin.
