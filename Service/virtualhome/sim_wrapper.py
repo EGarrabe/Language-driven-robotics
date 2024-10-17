@@ -10,11 +10,8 @@ from simulation.unity_simulator import comm_unity
 
 #Expected outcomes could be better
 
-
+#Placeholder for the 'do' function, the LLM will overwrite the definition at each step.
 def do():
-	return
-	
-def check():
 	return
 
 def log(line):
@@ -26,7 +23,7 @@ class robot:
 		self.held_obj = None #By default no object in gripper
 		self.name = name
 		self.location = 'Table'
-		self.pos = [0,0,0]
+		self.pos = [0,0,0] #Arm position relative to the robot base. Not needed in these experiments
 	def grasp(self, obj):
 		if self.location != obj.location:
 			raise Exception('Robot and objects in different locations')
@@ -128,11 +125,8 @@ class task():
 			log('Task ok')
 			sys.exit()
 
-grasp_part = None
-success_prob = 1 #0.9
-failed = False
-def grasp_object(obj, part=None):
-	global failed
+success_prob = 0.9
+def grasp_object(obj):
 	if obj not in objects:
 		raise Exception('Invalid object. Valid objects are: '+str(list(objects.keys())))
 	elif robot1.location != objects[obj].location:
@@ -142,11 +136,10 @@ def grasp_object(obj, part=None):
 	elif robot1.held_obj != None:
 		raise Exception('Gripper already full')
 	else:
-		if failed: #np.random.uniform() <= success_prob:
+		if np.random.uniform() <= success_prob:
 			robot1.held_obj = objects[obj]
 			instr = '<char0> [grab] ' + obj_ids[obj]
 			comm.render_script([instr], recording=True, frame_rate=10)
-			grasp_part = part
 		else:
 			failed = True
 			raise Exception('Object fell from gripper, try again. Object in robot gripper: ' +obj_in_gripper()+', robot location: '+str(robot_loc())+'. ')
@@ -171,8 +164,6 @@ def put_down(obj, target):
 		raise Exception('Target must be open before objects are put inside')
 	elif target == 'Cabinet' and not cabinet_open:
 		raise Exception('Target must be open before objects are put inside')
-	#elif target == 'TrashCan' and not trash_open:
-	#	raise Exception('Target must be open before objects are put inside')
 	else:
 		robot1.held_obj = None
 		objects[obj].location = target
@@ -192,10 +183,6 @@ def move_robot_to(target):
 		comm.render_script([instr], recording=True, frame_rate=10)
 		
 def move_arm_to(pos):
-	#TODO implement type check on pos
-	#for o in objects:
-	#	if objects[o].pos == [pos[0], pos[1], pos[2]]:
-	#		raise Exception("Collision between arm and object during move. Avoid moving to an object's position")
 	robot1.move_to(pos[0], pos[1], pos[2])
 				
 def rotate_end_effector(angle):
@@ -241,8 +228,6 @@ def robot_loc():
 	return(robot1.location)
 
 def open_obj(target):
-	#if robot1.held_obj != None:
-	#	raise Exception('Gripper needs to be empty for this action.')
 	global fridge_open
 	global cabinet_open
 	global trash_open
@@ -293,9 +278,6 @@ s, graph = comm.environment_graph()
 
 # Get the fridge node
 fridge_node = [node for node in graph['nodes'] if node['class_name'] == 'kitchencounter'][0]
-
-# Open it
-#fridge_node['states'] = ['OPEN']
 
 # create a new node
 new_node = {
@@ -364,42 +346,16 @@ sponge = sobject('Sponge', location='KitchenCounter')
 
 robot1 = robot('TiaGO')
 
-#locations = ['Door', 'UserDesk', 'TrashCan', 'Fridge', 'Microwave', 'Counter']
-#locations = ['KitchenTable', 'TrashCan']
-
-#locations = ['Desk', 'TrashCan', 'Shelf']
-#loc_ids = {'KitchenTable': '<kitchentable> (231)', 'UserDesk': '<coffeetable> (372)', 'TrashCan': '<garbagecan> (105)', 'Fridge': '<fridge> (306)', 'Microwave': '<microwave> (314)', 'Counter': '<kitchentable> (231)', 'Sink': '<sink> (247)', 'KitchenCounter': '<kitchencounter> (238)', 'Desk': '<kitchentable> (231)', 'Shelf': '<kitchencounter> (238)'}
-#locations = ['BathroomCounter', 'Desk', 'Bathtub']
-
+#Location list should be the one provided in the execution module's initial prompt
 locations = ['KitchenCounter', 'Table']
-#locations = ['BathroomCounter', 'Cabinet']
-#locations = ['KitchenCounter', 'Desk', 'Table']
-#locations = ['KitchenTable', 'CoffeeTable']
-#locations = ['KitchenTable', 'UserDesk']
-#locations = ['Desk', 'CoffeeTable']
-loc_ids = {'Desk2': '<desk>: (110)', 'Table': '<coffeetable> (372)', 'KitchenCounter': '<kitchencounter> (238)', 'BathroomCounter': '<bathroomcounter> (50)', 'Bathroom': '<bathroom> (11)', 'Bathtub': '<bathtub> (39)', 'KitchenTable': '<kitchentable> (231)', 'CoffeeTable':'<coffeetable> (112)', 'Table1':'<coffeetable> (112)', 'TrashCan': '<garbagecan> (105)', 'Cabinet': '<bathroomcabinet> (49)', 'UserDesk': '<coffeetable> (372)', 'Shelf': '<kitchencounter> (238)', 'Desk': '<kitchentable> (231)'} #For plant exp coffeetable 113, for peach 372
+#The virtualHome IDs (for both objects and locations) are all defined here for simplicity
+loc_ids = {'Desk2': '<desk>: (110)', 'Table': '<coffeetable> (372)', 'KitchenCounter': '<kitchencounter> (238)', 'BathroomCounter': '<bathroomcounter> (50)', 'Bathroom': '<bathroom> (11)', 'Bathtub': '<bathtub> (39)', 'KitchenTable': '<kitchentable> (231)', 'CoffeeTable':'<coffeetable> (112)', 'Table1':'<coffeetable> (112)', 'TrashCan': '<garbagecan> (105)', 'Cabinet': '<bathroomcabinet> (49)', 'UserDesk': '<coffeetable> (372)', 'Shelf': '<kitchencounter> (238)', 'Desk': '<kitchentable> (231)'}
 
-#objects = {'Pliers': pliers, 'Bottle': bottle, 'Screwdriver': screwdriver}
-#objects = {'Mouse': mouse, 'Keyboard': keyboard, 'Mug': mug, 'Cupcake':cupcake}
-#objects = {'Glass1': glass1, 'Glass2': glass2, 'Glass3': glass3, 'Glass4': glass4, 'Plate1': plate1, 'Plate2': plate2, 'Plate3': plate3, 'Plate4': plate4}
-#objects = {'Pliers': pliers, 'Bottle': bottle, 'Screwdriver': screwdriver}
-#objects = {'WaterGlass': glass11, 'Pills': pills, 'Soap': soap}
-#objects = {'Plate': plate31, 'WineGlass':wineglass}
+#Object list should be the one provided in the execution module's initial prompt
 objects = {'Soap': soap, 'Sponge': sponge}
-#objects = {'Pills': pills}
-#objects = {'WaterGlass': glass}
-#objects = {'Pills': pills, 'WaterGlass': glass11}
-#objects = {'Pie': pie}
-#objects = {'Peach': peach}
-#objects = {'Pills': pills}
-
-
 obj_ids = {'WaterGlass1': '<waterglass> (271)', 'Salmon': '<salmon> (328)', 'Plate1': '<salmon> (328)', 'Pie':'<pie> (320)', 'Glass1': '<waterglass> (271)', 'Glass2': '<waterglass> (275)', 'Glass3': '<waterglass> (282)', 'Glass4': '<waterglass> (283)', 'Plate1': '<plate> (274)', 'Plate2': '<plate> (278)', 'Plate3': '<plate> (279)', 'Plate4': '<plate> (286)', 'Bottle': '<waterglass> (271)', 'Bottle': '<waterglass> (283)', 'Screwdriver': '<plate> (274)', 'Pliers': '<plate> (278)', 'Mouse': '<mouse> (172)', 'Keyboard': '<keyboard> (174)', 'Mug': '<mug> (196)', 'Cupcake': '<cupcake> (197)', 'WaterGlass': '<waterglass> (65)', 'Pills': '<painkillers> (64)', 'Soap1': '<barsoap> (67)', 'Peach': '<peach> (443)', 'Plate':'<plate> (201)', 'WineGlass':'<wineglass> (200)', 'Soap':'<dishwashingliquid> (268)', 'Sponge':'<washingsponge> (267)'}
 
 robots = [robot1]
-#robot1.held_obj = plate
-instr = '<char0> [grab] <salmon> (328)'
-#comm.render_script([instr], recording=True, frame_rate=10)
 
 
 sim = simulation(robots)
@@ -411,6 +367,3 @@ rospy.init_node('simulation')
 
 
 rospy.spin()
-
-
-# TODO put down needs the object or only location?
