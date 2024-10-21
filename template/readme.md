@@ -1,0 +1,2 @@
+### Prompt templates for LLM components
+This subrepo contains the templates for writing prompts for each element within our architecture. Each template can be adapted to incorporate information about the environment (locations and objects) and skills available to the robot. The Planner and Expected Outcome module prompts should also be adapted to mirror the robot's capabilities (for example by providing the type of robot, the amount of arms available, the grippers, etc).
