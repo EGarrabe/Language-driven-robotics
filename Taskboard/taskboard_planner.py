@@ -15,9 +15,9 @@ def EO_prompt(task, plan):
     D = {}
     for i in range(len(eval(plan))):
         D['step'+str(i+1)] = ''
-    prompt = """You are in charge of executing the following task: '"""+str(task)+"""'. The plan consists of the following steps: """+plan+""" Each of the steps of the plan will be carried out with a robotic arm ending with a gripper. For each step of the plan, I need you to give a more precise description of the actions involved in the step, in physical and visual terms.
-This should consist of one or two short, simple sentences that are a more complete and detailed description of what the step should do. The sentences should describe what the robot should do, for example if it should move to a location, grasp an object (and what part of the object, if relevant for the task), or where an object should be put down. You can add some information if the plan is too concise. Here are some examples, with the plan step first and the requirements after:
--Press button: The robot should press the (color) button.
+    prompt = """You are in charge of executing the following task: '"""+str(task)+"""'. The plan consists of the following steps: """+plan+""" Each of the steps of the plan will be carried out with a robotic arm ending with a gripper. For each step of the plan, I need you to give the expected outcome of the actions involved in the step, in physical and visual terms.
+This should consist of one or two short, simple sentences that are a more complete and detailed description of the step's outcome. The sentences should describe the final state of the robot, for example if it should be at a location, have grasped an object (and what part of the object, if relevant for the task), or where an object should be put down. You can add some information if the plan is too concise. Here are some examples, with the plan step first and the requirements after:
+-Press button: The (color) button should be pressed.
 -Grasp object: The robot should grasp the (object) by the (object part).
 For each step of the plan, please briefly describe the expected outcome as shown above. Please try to be concise and focus on the most relevant information. Please fill out the following python dictionnary with the expected outcomes: """ +str(D)+""". Only output the dictionnary and no other text."""# Please only output the expected outcomes as a tuple of strings, and no other text."""
     return(prompt)
@@ -48,6 +48,9 @@ class planner():
         plan_p = plan_prompt(task)
         
         self.plan = self.ask(plan_p)
+        plan_out = String()
+        plan_out.data = self.plan
+        self.plan_publisher_.publish(plan_out)
         print(self.plan)
         
         print(self.plan)
@@ -55,14 +58,15 @@ class planner():
         print('EO prompt ok')
         EO = self.ask(EO_p)
         print(EO)
-        plan_out = String()
-        plan_out.data = self.plan
         EO_out = String()
         EO_out.data = EO
-        self.plan_publisher_.publish(plan_out)
         self.EO_publisher_.publish(EO_out)
+        
+        rospy.signal_shutdown('aa')
+        sys.exit()
 
 def main(args=None):
+    print("planner ok")
     rospy.init_node('planner')
     #print('node ok')
 

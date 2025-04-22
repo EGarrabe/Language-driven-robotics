@@ -20,6 +20,8 @@ class Orchestrator():
         self.task = None
         self.plan = None
         self.EO = None
+        self.timestep = 0
+        self.plan_N = 0
         
     def ask(self, msg):
         #Add to the context and prompt the LLM
@@ -44,6 +46,7 @@ class Orchestrator():
 
     def plan_callback(self, msg):
         self.plan = eval(msg.data)
+        self.plan_N = len(self.plan)
 
     def EO_callback(self, msg):
         self.EO = list(eval(msg.data).values()) #The expected outcomes are formatted as a dict for clarity, so here we extract the values to keep in a list
@@ -54,6 +57,8 @@ class Orchestrator():
         #When feedback is received, go to the next step. The step is successful if the feedback was 'Done'
         feedback = msg.data
         if feedback == 'Task over':
+            print("Orchestrator shutdown on task success")
+            rospy.signal_shutdown('aa')
             sys.exit()
         self.step(feedback[:4] == 'Done', feedback)
             
@@ -72,9 +77,20 @@ class Orchestrator():
 
     def step(self, success, feedback):
         #Update the plan if needed (the previous step was succesful), build the prompt and ask
+        self.timestep = self.timestep + 1
+        if self.timestep > self.plan_N*2:
+            print(f"Orchestrator shutdown on task failure (step {self.timestep})")
+            output = String()
+            output.data = "Timeout"
+            log("Timeout")
+            self.publisher.publish(output)
+            rospy.signal_shutdown('aa')
+            sys.exit()
         if success:
             self.plan = self.plan[1:]
             self.EO = self.EO[1:]
+            if self.EO == []:
+                self.EO = ["0"]
         prompt = self.build_prompt(feedback)
         self.ask(prompt)
         
@@ -83,6 +99,7 @@ class Orchestrator():
         return(feedback + ' plan: (' + str(self.plan) + '). Details of current step: '+self.EO[0])
         
 def main(args=None):
+    print("orchestrator ok")
     rospy.init_node('orchestrator')
 
     sub = Orchestrator()
